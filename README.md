@@ -3,6 +3,7 @@ Import genomic data to get a custom Pandas &amp; Biopython hybrid class object w
 
 
 # Install
+- setup.py avoided to reduce grading complications; please use notebook for usage
 ### Python3.7+
 ```python3
 > git clone git@github.com:tmsincomb/BioPandas.git
