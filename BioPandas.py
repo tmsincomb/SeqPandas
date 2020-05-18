@@ -37,7 +37,7 @@ class SubclassedDataFrame(pandas.DataFrame):
         return SubclassedSeries
 
 
-class BioDatabase(SubclassedDataFrame):
+class DataFrame(SubclassedDataFrame):
     """ Expanded Pandas DataFrame to handle BioPython SeqRecords generator or genomic file types """
 
     @classmethod
@@ -152,12 +152,12 @@ def read_seq(handle: str, format: str, alphabet: object = None) -> pandas.DataFr
         with gzip.open(handle, "rt") as handle:
             seqrecords = SeqIO.parse(handle, format=format, alphabet=alphabet)
             # need to use/return while I/O is open
-            return BioDatabase.from_seqrecords(seqrecords)
+            return DataFrame.from_seqrecords(seqrecords)
     # Uncompressed; will break if another compression is used.
     seqrecords = SeqIO.parse(handle, format=format, alphabet=alphabet)
-    return BioDatabase.from_seqrecords(seqrecords)
+    return DataFrame.from_seqrecords(seqrecords)
 
 
 ### Add to pandas module for seamless behavior ###
-pandas.DataFrame = BioDatabase
+pandas.DataFrame = DataFrame
 pandas.read_seq = read_seq
