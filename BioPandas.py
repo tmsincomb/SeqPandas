@@ -13,11 +13,6 @@ from pandas import DataFrame
 # from pandas.core.frame import * # Needed if I want to dive even deeper.
 
 
-### Add to pandas module for seamless behavior ###
-pandas.DataFrame = BioDatabase
-pandas.read_seq = read_seq
-
-
 class SubclassedSeries(pandas.Series):
     """ Pandas Series API to Inherit """
 
@@ -72,27 +67,34 @@ class BioDatabase(SubclassedDataFrame):
 
         >>> __normalize_seqrecords(Bio.SeqIO.parse('file.fasta', format='fasta'))
         """
+
+        def update_record(_record, data, reference_keys):
+            """ Quick update of dictionary without updating prexisting keys """
+            for key, value in data.items():
+                if key not in reference_keys:
+                    _record[key] = value
+            return _record
+
         records = []
         for seqrecord in SeqIO.to_dict(seqrecords).values():
             _records = []
             record = seqrecord.__dict__
             # If a more complicated format is used; features will be nested.
             features = record.pop('features') if record.get('features') else []
+            # Annotation dictionary inside each seqrecord
+            annotations = record.pop('annotations') if record.get('annotations') else {}
+            # Add each annotation as seperate column
+            record = update_record(record, annotations, record.keys())
             for feature in features:
-                _record = deepcopy(record)
+                _record = deepcopy(record) # Needs to refresh for each feature
                 # Meta that make up the feature
                 aspects = feature.__dict__
                 # Qualifier dictionary inside each feature
                 qualifiers = aspects.pop('qualifiers') if aspects.get('qualifiers') else {}
                 # Add each feature aspect
-                for aspect_key, aspect_value in aspects.items():
-                    if aspect_key not in record:
-                        _record[aspect_key] = aspect_value
+                _record = update_record(_record, aspects, record.keys())
                 # Add each qualifier
-                for qualifier_key, qualifier_value in qualifiers.items():
-                    _record = deepcopy(_record)
-                    if qualifier_key not in _record:
-                        _record[qualifier_key] = qualifier_value
+                _record = update_record(_record, qualifiers, record.keys())
                 # Collect normalized feature
                 _records += [_record]
             # If no normalized feature collected use original seq record
@@ -133,12 +135,13 @@ def pathing(path: Union[str, Path], new: bool = False) -> Path:
     return path
 
 
-def read_seq(handle: str, format: str, alphabet: object = single_letter_alphabet) -> pandas.DataFrame:
+def read_seq(handle: str, format: str, alphabet: object = None) -> pandas.DataFrame:
     """ Read Bioinformatic file type
 
     :param str handle: str path of file to open.
     :param str format: Broad range of Bioinformatic formats ie fasta & genbank.
-    :param object alphabet: Custom string from BioPython with handy methods.
+    :param object alphabet: Any number of Custom string object from BioPython with handy methods.
+        [default: Bio.Alphabet.single_letter_alphabet]
 
     >>> read_seq('file.fasta.gz', format='fasta')
     """
@@ -153,3 +156,8 @@ def read_seq(handle: str, format: str, alphabet: object = single_letter_alphabet
     # Uncompressed; will break if another compression is used.
     seqrecords = SeqIO.parse(handle, format=format, alphabet=alphabet)
     return BioDatabase.from_seqrecords(seqrecords)
+
+
+### Add to pandas module for seamless behavior ###
+pandas.DataFrame = BioDatabase
+pandas.read_seq = read_seq
