@@ -1,15 +1,21 @@
-from copy import deepcopy
+#!/usr/bin/env python3
+from copy import deepcopy # copies all nested dictionaries
 import gzip
 from pathlib import Path
 from types import GeneratorType
 from typing import Union, Dict, List, Tuple
 
 import Bio
-from Bio import SeqIO
-from Bio.Alphabet import single_letter_alphabet
+from Bio import SeqIO # __init__ kicks in
+from Bio.Alphabet import single_letter_alphabet # General sequence type
 import pandas
 from pandas import DataFrame
 # from pandas.core.frame import * # Needed if I want to dive even deeper.
+
+
+### Add to pandas module for seamless behavior ###
+pandas.DataFrame = BioDatabase
+pandas.read_seq = read_seq
 
 
 class SubclassedSeries(pandas.Series):
@@ -49,10 +55,10 @@ class BioDatabase(SubclassedDataFrame):
 
         >>> from_seqrecords(Bio.SeqIO.parse('file.fasta', format='fasta'))
         """
-        # if isinstance(seqrecords, GeneratorType):
+        # Nomalize nested featues; will result in some redundant.
+        # This won't be an issue since small seqrecord count usually means high
+        # amount of features & vice versa .
         data = cls.__normalize_seqrecords(seqrecords)
-        # else:
-        #     data = seqrecords
         return cls.from_records(data, index=index, exclude=exclude, columns=columns,
                                 coerce_float=coerce_float, nrows=nrows)
 
@@ -147,8 +153,3 @@ def read_seq(handle: str, format: str, alphabet: object = single_letter_alphabet
     # Uncompressed; will break if another compression is used.
     seqrecords = SeqIO.parse(handle, format=format, alphabet=alphabet)
     return BioDatabase.from_seqrecords(seqrecords)
-
-
-# Add to pandas module for seemly behavior
-pandas.DataFrame = BioDatabase
-pandas.read_seq = read_seq
