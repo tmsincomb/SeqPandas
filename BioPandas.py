@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-from copy import deepcopy # copies all nested dictionaries
+from abc import ABC
+from copy import deepcopy  # copies all nested dictionaries
 import gzip
 from pathlib import Path
 from types import GeneratorType
 from typing import Union, Dict, List, Tuple
 
 import Bio
-from Bio import SeqIO # __init__ kicks in
-from Bio.Alphabet import single_letter_alphabet # General sequence type
+from Bio import SeqIO  # __init__ kicks in
+from Bio.Alphabet import single_letter_alphabet  # General sequence type
 import pandas
 from pandas import DataFrame
 # from pandas.core.frame import * # Needed if I want to dive even deeper.
@@ -25,7 +26,7 @@ class SubclassedSeries(pandas.Series):
         return SubclassedDataFrame
 
 
-class SubclassedDataFrame(pandas.DataFrame):
+class SubclassedDataFrame(pandas.DataFrame, ABC):
     """ Pandas DataFrame to Inherit """
 
     @property
@@ -37,16 +38,32 @@ class SubclassedDataFrame(pandas.DataFrame):
         return SubclassedSeries
 
 
-class DataFrame(SubclassedDataFrame):
+# todo add from_bam & read_bam # make from_sam and read_sam for sanity and dump-dumps
+# todo add from_embl & read_embl # uk version of genbank
+# todo add from_vcf & read_vcf
+# todo give a dataframe a method extension to become a tfrecord https://www.tensorflow.org/tutorials/load_data/tfrecord
+class BioDataFrame(SubclassedDataFrame, ABC):
     """ Expanded Pandas DataFrame to handle BioPython SeqRecords generator or genomic file types """
 
     @classmethod
-    def from_seqrecords(cls, seqrecords: Union[GeneratorType, list], index=None, exclude=None,
-                        columns=None, coerce_float=False, nrows=None) -> pandas.DataFrame:
+    def from_seqrecords(cls,
+                        seqrecords: Union[GeneratorType, list],
+                        index=None,
+                        exclude=None,
+                        columns=None,
+                        coerce_float=False,
+                        nrows=None) -> pandas.DataFrame:
         """ Takes Biopython parsed output to convert to a proper DataFrame
 
-        :param seqrecords: Generator or list from BioPython universal output.
-            All formats are the same output.
+            See from_records for more details on the rest of the parameters
+            # todo see if the rest should be included if we are going to customize it this way.
+
+        :param seqrecords: Generator or list from BioPython universal output. All formats are the same output.
+        :param index:
+        :param exclude:
+        :param columns:
+        :param coerce_float:
+        :param nrows:
 
         >>> from_seqrecords(Bio.SeqIO.parse('file.fasta', format='fasta'))
         """
@@ -54,15 +71,21 @@ class DataFrame(SubclassedDataFrame):
         # This won't be an issue since small seqrecord count usually means high
         # amount of features & vice versa .
         data = cls.__normalize_seqrecords(seqrecords)
-        return cls.from_records(data, index=index, exclude=exclude, columns=columns,
-                                coerce_float=coerce_float, nrows=nrows)
+        return cls.from_records(
+            data,
+            index=index,
+            exclude=exclude,
+            columns=columns,
+            coerce_float=coerce_float,
+            nrows=nrows
+        )
 
+    @staticmethod
     def __normalize_seqrecords(seqrecords: Union[GeneratorType, list]) -> List[dict]:
         """ Pull nested dictionaries into a single dictionary.
 
         Priority is given to the keys higher in the hierarchy.
-        :param seqrecords: Generator from BioPython universal output.
-            All formats are the same output.
+        :param seqrecords: Generator from BioPython universal output. All formats are the same output.
         :returns: List of dictionaries with keys that were obtained along the way.
 
         >>> __normalize_seqrecords(Bio.SeqIO.parse('file.fasta', format='fasta'))
@@ -86,7 +109,7 @@ class DataFrame(SubclassedDataFrame):
             # Add each annotation as seperate column
             record = update_record(record, annotations, record.keys())
             for feature in features:
-                _record = deepcopy(record) # Needs to refresh for each feature
+                _record = deepcopy(record)  # Needs to refresh for each feature
                 # Meta that make up the feature
                 aspects = feature.__dict__
                 # Qualifier dictionary inside each feature
@@ -110,8 +133,7 @@ def pathing(path: Union[str, Path], new: bool = False) -> Path:
     """ Guarantees correct expansion rules for pathing.
 
     :param Union[str, Path] path: path of folder or file you wish to expand.
-    :param bool new: will check if distination exists if new
-        (will check parent path regardless).
+    :param bool new: will check if distination exists if new  (will check parent path regardless).
     :return: A pathlib.Path object.
 
     >>> pathing('~/Desktop/folderofgoodstuffs/')
@@ -122,7 +144,7 @@ def pathing(path: Union[str, Path], new: bool = False) -> Path:
     if str(path)[0] == '~':
         path = path.expanduser()
     else:
-        path = path.absolute() #
+        path = path.absolute()
     # Making sure new paths don't exist while also making sure existing paths actually exist.
     if new:
         if not path.parent.exists():
@@ -152,12 +174,12 @@ def read_seq(handle: str, format: str, alphabet: object = None) -> pandas.DataFr
         with gzip.open(handle, "rt") as handle:
             seqrecords = SeqIO.parse(handle, format=format, alphabet=alphabet)
             # need to use/return while I/O is open
-            return DataFrame.from_seqrecords(seqrecords)
+            return BioDataFrame.from_seqrecords(seqrecords)
     # Uncompressed; will break if another compression is used.
     seqrecords = SeqIO.parse(handle, format=format, alphabet=alphabet)
-    return DataFrame.from_seqrecords(seqrecords)
+    return BioDataFrame.from_seqrecords(seqrecords)
 
 
-### Add to pandas module for seamless behavior ###
-pandas.DataFrame = DataFrame
+# ADDS to pandas module for seamless behavior #
+pandas.DataFrame = BioDataFrame
 pandas.read_seq = read_seq
