@@ -1,12 +1,15 @@
 # BioPandas
 Import genomic data to get a custom Pandas &amp; Biopython hybrid class object with fancy shortcuts to make Machine Learning preprocessing easy!
 
+# Prerequisites
+[![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
+
 # Install
 ### Python3.7+
 ```python3
 > git clone git@github.com:tmsincomb/BioPandas.git
-> pip3 install pandas
-> pip3 install biopython
+> cd BioPandas
+> pip install -e .
 ```
 
 # Usage
