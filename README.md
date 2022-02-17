@@ -19,13 +19,16 @@ pip install seqpandas
 Usage
 ---
 ```python3
-impor seqpandas as spd
+import seqpandas as spd
 
 # Direct File Path
 df = spd.read_seq('file.fasta', format='fasta')
 df = spd.read_seq('file.sam', format='sam')
 df = spd.read_vcf('file.vcf', format='vcf')
 df = spd.read_bed('file.bed', format='bed')
+
+# Just need BioPython Seqs? No problem!
+seqrecords = spd.read('file.fasta', format='fasta')
 
 # Already Opened BioPython Handle
 from Bio import SeqIO
