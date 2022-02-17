@@ -31,6 +31,7 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     description="Read bioinformatics sequence formats into a Pandas DataFrame",
     entry_points={
@@ -48,6 +49,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/tmsincomb/seqpandas",
-    version="0.0.1",
+    version="0.0.2",
     zip_safe=False,
 )
