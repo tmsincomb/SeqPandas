@@ -1,6 +1,6 @@
-=========
-SeqPandas :: Read bioinformatics sequence formats into a Pandas DataFrame
-=========
+
+# SeqPandas :: Read bioinformatics sequence formats into a Pandas DataFrame
+
 Import genomic data to get a custom Pandas &amp; Biopython hybrid class object with fancy shortcuts to make Machine Learning preprocessing easy!
 
 # Prerequisites
@@ -35,13 +35,10 @@ df = spd.BioDataFrame.from_seqrecords(seqrecords)
 
 Tutorial
 ---
-For a complete walkthrough and to use it for a machine learning pipeline please follow the [tutorial notebook](https://github.com/tmsincomb/BioPandas/blob/master/tutorial.ipynb)
+For a complete walkthrough and to use it for a machine learning pipeline please follow the [tutorial notebook](https://github.com/tmsincomb/SeqPandas/blob/master/tutorial.ipynb)
 
 
 Credits
 -------
 
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+This package was created with Cookiecutter and the audreyr/cookiecutter-pypackage project template.
