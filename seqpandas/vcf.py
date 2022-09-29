@@ -1,7 +1,12 @@
 from collections import OrderedDict
+from datetime import datetime
+from email import header
 from io import StringIO
 
 import pandas as pd
+
+from seqpandas.seqpandas import BioDataFrame
+from seqpandas import __version__
 
 
 def read_vcf(
@@ -104,3 +109,22 @@ def read_vcf(
                 df.iloc[:, i] = df.iloc[:, [8, i]].apply(lambda x: uu(x), axis=1)
 
     return df
+
+
+def to_vcf(df, reference:) -> str:
+    header = f"""
+    ##fileformat=VCFv4.3
+    ##fileDate={datetime.today().isoformat().split('T')[0].replace('-', '')}
+    ##source=SeqPandasV{__version__}
+    """
+    df = open_function[path.suffix](path, usecols=columns, dtype=str, keep_default_na=False)
+    
+    
+class VCF(BioDataFrame):
+    
+    @property
+    def E(cls, path, **kwargs):
+        return cls(read_vcf(path, **kwargs))
+    
+    
+    

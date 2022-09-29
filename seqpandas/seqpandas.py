@@ -11,6 +11,7 @@ from typing import Union, List, Tuple, Iterator
 from Bio.Seq import Seq
 from Bio import SeqIO  # __init__ kicks in
 import pandas as pd
+from pysam import AlignmentFile
 
 from .pathing import pathing
 
@@ -49,21 +50,12 @@ class BioDataFrame(SubclassedDataFrame, ABC):
     def from_seqrecords(
         cls,
         seqrecords: Union[GeneratorType, list],
-        index=None,
-        exclude=None,
-        columns=None,
-        coerce_float=False,
-        nrows=None,
+        *args,
+        **kwargs,
     ) -> pd.DataFrame:
         """Takes Biopython parsed output to convert to a proper DataFrame
             See from_records for more details on the rest of the parameters
-            # todo see if the rest should be included if we are going to customize it this way.
         :param seqrecords: Generator or list from BioPython universal output. All formats are the same output.
-        :param index:
-        :param exclude:
-        :param columns:
-        :param coerce_float:
-        :param nrows:
         >>> from_seqrecords(Bio.SeqIO.parse('file.fasta', format='fasta'))
         """
         # Nomalize nested featues; will result in some redundant.
@@ -71,8 +63,11 @@ class BioDataFrame(SubclassedDataFrame, ABC):
         # amount of features & vice versa .
         data = cls.__normalize_seqrecords(seqrecords)
         return cls.from_records(
-            data, index=index, exclude=exclude, columns=columns, coerce_float=coerce_float, nrows=nrows
+            data, *args, **kwargs
         )
+        
+    def to_vcf(self):
+        return self
 
     @staticmethod
     def __normalize_seqrecords(seqrecords: Union[GeneratorType, list]) -> List[dict]:
@@ -122,7 +117,7 @@ class BioDataFrame(SubclassedDataFrame, ABC):
             # We do this because there could be more than one feature per seqrecord.
             records += _records
 
-        return records
+        return records    
 
 
 def open_mode(suffix: str) -> Tuple[str, str]:
@@ -213,6 +208,15 @@ def read(
             seqs: Iterator[tuple] = SeqIO.FastaIO.SimpleFastaParser(handle)
             for annotation, sequence, quality_scores in seqs:
                 yield annotation, Seq(sequence), quality_scores
+        elif format == 'sam':
+            samfile = AlignmentFile(path, 'r', threads=1)
+            return BioDataFrame([alignment.to_dict() for alignment in list(samfile)])
+        elif format == 'bam':
+            samfile = AlignmentFile(path, 'rb', threads=1)
+            return BioDataFrame([alignment.to_dict() for alignment in list(samfile)])
+        elif format == 'cram':
+            samfile = AlignmentFile(path, "rc", threads=1)
+            return BioDataFrame([alignment.to_dict() for alignment in list(samfile)])
         else:
             seqs: SeqIO.SeqRecord = SeqIO.parse(handle, format=format)
             for seq in seqs:
@@ -261,3 +265,6 @@ def read_seq(handle: Union[str, StringIO], format: str = None) -> pd.DataFrame:
     seqrecords = read(handle, format)
     # Convert to pandas DataFrame - pulling out all the annotations and such as their own columns
     return BioDataFrame.from_seqrecords(seqrecords)
+
+
+

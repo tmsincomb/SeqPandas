@@ -7,5 +7,5 @@ from .pathing import pathing
 
 __author__ = """Troy Sincomb"""
 __email__ = "troysincomb@gmail.com"
-__version__ = "0.0.1"
-__all__ = ["read", "read_seq", "BioDataFrame", "read_vcf", "read_bed", "pathing"]
+__version__ = "0.0.2"
+__all__ = ["read", "read_seq", "BioDataFrame", "read_vcf", "read_bed", "pathing"] 
