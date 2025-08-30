@@ -29,7 +29,6 @@ jobs:
           channels: conda-forge
           channel-priority: strict
           activate-environment: test
-          environment-file: false
           auto-activate-base: false
 
       - name: Install Python ${{ matrix.python-version }}
