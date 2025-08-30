@@ -76,8 +76,8 @@ jobs:
           CIBW_BEFORE_BUILD_MACOS: "pip install 'numpy>=1.21.0,<2.0.0' && pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja"
           # Test the wheels (skip SAM tests on Windows since pysam doesn't support Windows)
           CIBW_TEST_REQUIRES: "pytest pandas biopython pysam>=0.23.3 numpy<2.0.0 scipy matplotlib logomaker patchworklib"
-          # Copy test data to package directory before running tests (only if different directories)
-          CIBW_BEFORE_TEST: "[ '{project}' != '{package}' ] && cp -r {project}/tests {package}/ || true"
+          # Copy test data to package directory before running tests
+          CIBW_BEFORE_TEST: "cp -r {project}/tests {package}/ 2>/dev/null || true"
           CIBW_TEST_COMMAND: "cd {package} && pytest tests -v"
           # macOS arm64 specific settings
           CIBW_ARCHS_MACOS: "x86_64 arm64"
