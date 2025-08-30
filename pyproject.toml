@@ -8,7 +8,7 @@ build-backend = "mesonpy"
 
 [project]
 name = "seqpandas"
-version = "0.0.2"
+version = "0.1.0"
 description = "Read bioinformatics sequence formats into a Pandas DataFrame"
 readme = "README.rst"
 license = {text = "MIT"}
