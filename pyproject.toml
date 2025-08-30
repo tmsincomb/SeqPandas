@@ -87,9 +87,9 @@ skip = "*-musllinux_* *-manylinux_2_17*"
 # Use newer manylinux images to avoid CentOS 7 repository issues
 manylinux-x86_64-image = "manylinux_2_28"
 manylinux-aarch64-image = "manylinux_2_28"
-# Copy test data before running tests
-before-test = "cp -r {project}/tests {package}/"
-test-command = "pytest {package}/tests -v"
+# Copy test data before running tests (only if different directories)
+before-test = "[ '{project}' != '{package}' ] && cp -r {project}/tests {package}/ || true"
+test-command = "cd {package} && pytest tests -v"
 test-requires = ["pytest", "pandas", "biopython", "pysam>=0.23.3", "numpy<2.0.0", "scipy", "matplotlib", "logomaker", "patchworklib"]
 
 # Platform-specific build requirements
