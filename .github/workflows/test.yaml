@@ -48,7 +48,12 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=seqpandas --cov-report=term-missing --cov-report=xml
+          # Skip SAM/alignment tests on Python 3.13 due to pysam incompatibility
+          if [[ "${{ matrix.python-version }}" == "3.13"* ]]; then
+            pytest tests/ -v --cov=seqpandas --cov-report=term-missing --cov-report=xml -k "not (sam or alignment)"
+          else
+            pytest tests/ -v --cov=seqpandas --cov-report=term-missing --cov-report=xml
+          fi
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
