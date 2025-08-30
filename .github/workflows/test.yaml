@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.10', '3.11', '3.12', '3.13.5']  # Pin 3.13.5 to avoid pysam issue in 3.13.6+
 
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +48,13 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=seqpandas --cov-report=term-missing --cov-report=xml
+          # Skip SAM/alignment tests on Windows since pysam doesn't support Windows
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            pytest tests/ -v --cov=seqpandas --cov-report=term-missing --cov-report=xml -k "not (sam or alignment)"
+          else
+            pytest tests/ -v --cov=seqpandas --cov-report=term-missing --cov-report=xml
+          fi
+        shell: bash
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
