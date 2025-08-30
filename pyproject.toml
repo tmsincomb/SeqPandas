@@ -2,7 +2,7 @@
 requires = [
     "meson-python>=0.15.0",
     "Cython>=3.0.0",
-    "numpy>=1.21.0",
+    "numpy>=1.21.0,<2.0.0",  # Pin to NumPy 1.x for compatibility
 ]
 build-backend = "mesonpy"
 
@@ -26,8 +26,6 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -36,13 +34,13 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Topic :: Scientific/Engineering",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "Click>=7.0",
     "pandas>=1.3.0",
     "biopython>=1.79",
     "pysam>=0.19.0",
-    "numpy>=1.21.0,<1.27.0",
+    "numpy>=1.21.0,<2.0.0",  # Pin to NumPy 1.x for Cython compatibility
     "scipy>=1.7.0",
     "matplotlib>=3.3.0",
     "logomaker>=0.8",
@@ -83,13 +81,13 @@ Issues = "https://github.com/tmsincomb/seqpandas/issues"
 args = {compile = [], setup = ['-Dbuildtype=release']}
 
 [tool.cibuildwheel]
-# Build wheels for Python 3.8+
-build = "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+# Build wheels for Python 3.10+
+build = "cp310-* cp311-* cp312-* cp313-*"
 skip = "*-musllinux_*"
 
 [tool.black]
 line-length = 100
-target-version = ['py38']
+target-version = ['py310']
 include = '\.pyi?$'
 
 [tool.isort]

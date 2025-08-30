@@ -29,7 +29,7 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build "meson-python>=0.15.0" "Cython>=3.0.0" "numpy>=1.21.0" meson ninja
+          pip install build "meson-python>=0.15.0" "Cython>=3.0.0" "numpy>=1.21.0,<2.0.0" meson ninja
 
       - name: Build sdist
         run: python -m build --sdist
@@ -63,18 +63,22 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
-          # Skip musllinux builds as configured in pyproject.toml
-          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+          # Build for Python 3.10+ only
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
           CIBW_SKIP: "*-musllinux_*"
           # Install build dependencies before building
-          CIBW_BEFORE_BUILD: "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' 'numpy>=1.21.0,<1.27.0' meson ninja"
+          CIBW_BEFORE_BUILD: "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' 'numpy>=1.21.0,<2.0.0' meson ninja"
+          # Windows specific build command
+          CIBW_BEFORE_BUILD_WINDOWS: "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' 'numpy>=1.21.0,<2.0.0' meson ninja && pip install delvewheel"
           # Test the wheels
-          CIBW_TEST_REQUIRES: "pytest pandas biopython pysam numpy scipy matplotlib logomaker patchworklib"
+          CIBW_TEST_REQUIRES: "pytest pandas biopython pysam numpy<2.0.0 scipy matplotlib logomaker patchworklib"
           CIBW_TEST_COMMAND: "pytest {package}/tests -v"
           # macOS arm64 specific settings
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           # Windows specific settings
           CIBW_ARCHS_WINDOWS: "AMD64"
+          # Windows repair command
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
