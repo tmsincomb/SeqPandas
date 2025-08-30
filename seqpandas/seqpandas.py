@@ -1,18 +1,20 @@
 """Main module."""
-from abc import ABC
+
 import bz2
-from copy import deepcopy  # copies all nested dictionaries
 import gzip
+from abc import ABC
+from copy import deepcopy  # copies all nested dictionaries
 from io import StringIO
 from pathlib import Path
 from types import GeneratorType
-from typing import Union, List, Tuple, Iterator
+from typing import Iterator, List, Tuple, Union
 
-from Bio.Seq import Seq
-from Bio import SeqIO  # __init__ kicks in
 import pandas as pd
+from Bio import SeqIO  # __init__ kicks in
+from Bio.Seq import Seq
+from pysam import AlignmentFile
 
-from .pathing import pathing
+from .tools.pathing import pathing
 
 # from pandas.core.frame import * # Needed if I want to dive even deeper.
 
@@ -49,30 +51,22 @@ class BioDataFrame(SubclassedDataFrame, ABC):
     def from_seqrecords(
         cls,
         seqrecords: Union[GeneratorType, list],
-        index=None,
-        exclude=None,
-        columns=None,
-        coerce_float=False,
-        nrows=None,
+        *args,
+        **kwargs,
     ) -> pd.DataFrame:
         """Takes Biopython parsed output to convert to a proper DataFrame
             See from_records for more details on the rest of the parameters
-            # todo see if the rest should be included if we are going to customize it this way.
         :param seqrecords: Generator or list from BioPython universal output. All formats are the same output.
-        :param index:
-        :param exclude:
-        :param columns:
-        :param coerce_float:
-        :param nrows:
         >>> from_seqrecords(Bio.SeqIO.parse('file.fasta', format='fasta'))
         """
         # Nomalize nested featues; will result in some redundant.
         # This won't be an issue since small seqrecord count usually means high
         # amount of features & vice versa .
         data = cls.__normalize_seqrecords(seqrecords)
-        return cls.from_records(
-            data, index=index, exclude=exclude, columns=columns, coerce_float=coerce_float, nrows=nrows
-        )
+        return cls.from_records(data, *args, **kwargs)
+
+    def to_vcf(self):
+        return self
 
     @staticmethod
     def __normalize_seqrecords(seqrecords: Union[GeneratorType, list]) -> List[dict]:
@@ -90,7 +84,14 @@ class BioDataFrame(SubclassedDataFrame, ABC):
                     _record[key] = value
             return _record
 
-        seqrecords = SeqIO.to_dict(seqrecords).values()  # Only care for the actual records themselves
+        # Handle SAM/BAM/CRAM alignment dicts directly
+        seqrecords_list = list(seqrecords)
+        if seqrecords_list and isinstance(seqrecords_list[0], dict):
+            return seqrecords_list
+
+        seqrecords = SeqIO.to_dict(
+            seqrecords_list
+        ).values()  # Only care for the actual records themselves
 
         records = []
         for seqrecord in seqrecords:
@@ -204,6 +205,31 @@ def read(
     >>> read('nosuffix_file', 'fasta')
     """
 
+    # Clean file path - make sure it exists
+    if not isinstance(handle, StringIO):
+        path = pathing(handle)
+        format = pull_format(path, override=format)
+    else:
+        path = None
+        if not format:
+            raise ValueError("Must specify format for StringIO")
+        format = format.lower().strip()
+
+    # Special handling for SAM/BAM/CRAM files - they yield alignment dicts
+    if format in ["sam", "bam", "cram"]:
+        if format == "sam":
+            samfile = AlignmentFile(str(path) if path else handle, "r", threads=1)
+        elif format == "bam":
+            samfile = AlignmentFile(str(path) if path else handle, "rb", threads=1)
+        elif format == "cram":
+            samfile = AlignmentFile(str(path) if path else handle, "rc", threads=1)
+
+        # Yield alignments as dict-like objects
+        for alignment in samfile:
+            yield alignment.to_dict()
+        samfile.close()
+        return
+
     def read_handle(handle, format):
         if simple and format == "fastq":
             seqs: Iterator[tuple] = SeqIO.QualityIO.FastqGeneralIterator(handle)
@@ -220,17 +246,10 @@ def read(
 
     # Special case for StringIO if the file is already opened
     if isinstance(handle, StringIO):
-        if not format:
-            raise ValueError("Must specify format for StringIO")
-        format = format.lower().strip()
         yield from read_handle(handle, format)
     else:
-        # Clean file path - make sure it exists
-        path = pathing(handle)
         # Get opener for compression if needed
         _open, mode = open_mode(path.suffix)
-        # Pull format from path if not format is provided - clean format string for BioPython
-        format = pull_format(path, override=format)
         # Return a generator of SeqRecords the way it was intended
         with _open(path, mode) as handle:
             yield from read_handle(handle, format)

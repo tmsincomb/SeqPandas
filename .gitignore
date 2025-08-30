@@ -133,5 +133,8 @@ dmypy.json
 .vscode/*
 
 
-# Mac 
+# Mac
 .DS_Store
+
+*.md
+!README.md

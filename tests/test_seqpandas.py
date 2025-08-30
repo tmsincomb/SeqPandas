@@ -3,11 +3,9 @@
 """Tests for `seqpandas` package."""
 
 import pytest
-
 from click.testing import CliRunner
 
-from seqpandas import seqpandas
-from seqpandas import cli
+from seqpandas import cli, seqpandas
 
 
 @pytest.fixture
@@ -29,9 +27,11 @@ def test_content(response):
 def test_command_line_interface():
     """Test the CLI."""
     runner = CliRunner()
-    result = runner.invoke(cli.main)
+    # The main command is now a group, so calling it without subcommands shows help
+    result = runner.invoke(cli.main, ["--help"])
     assert result.exit_code == 0
-    assert "seqpandas.cli.main" in result.output
-    help_result = runner.invoke(cli.main, ["--help"])
-    assert help_result.exit_code == 0
-    assert "--help  Show this message and exit." in help_result.output
+    assert "SeqPandas CLI" in result.output
+    assert "--help" in result.output
+    # Check that subcommands are listed
+    assert "read" in result.output
+    assert "read-vcf" in result.output
