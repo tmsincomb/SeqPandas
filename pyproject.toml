@@ -88,7 +88,7 @@ skip = "*-musllinux_*"
 # Platform-specific build requirements
 [tool.cibuildwheel.linux]
 before-build = [
-    "yum install -y bzip2-devel xz-devel libcurl-devel zlib-devel || apt-get update && apt-get install -y libbz2-dev liblzma-dev libcurl4-openssl-dev zlib1g-dev",
+    "yum install -y bzip2-devel xz-devel libcurl-devel zlib-devel",
     "pip install 'numpy>=1.21.0,<2.0.0'",
     "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja"
 ]
