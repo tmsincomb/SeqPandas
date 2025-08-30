@@ -40,7 +40,7 @@ jobs:
       - name: Install test dependencies
         run: |
           pip install pytest pytest-cov
-          pip install pandas biopython pysam scipy matplotlib logomaker patchworklib
+          pip install pandas biopython "pysam>=0.23.3" scipy matplotlib logomaker patchworklib
 
       - name: Run tests with coverage
         run: |

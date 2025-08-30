@@ -71,7 +71,7 @@ jobs:
           # Windows specific build command
           CIBW_BEFORE_BUILD_WINDOWS: "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' 'numpy>=1.21.0,<2.0.0' meson ninja && pip install delvewheel"
           # Test the wheels
-          CIBW_TEST_REQUIRES: "pytest pandas biopython pysam numpy<2.0.0 scipy matplotlib logomaker patchworklib"
+          CIBW_TEST_REQUIRES: "pytest pandas biopython pysam>=0.23.3 numpy<2.0.0 scipy matplotlib logomaker patchworklib"
           CIBW_TEST_COMMAND: "pytest {package}/tests -v"
           # macOS arm64 specific settings
           CIBW_ARCHS_MACOS: "x86_64 arm64"
