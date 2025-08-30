@@ -29,20 +29,20 @@ if incdir_numpy != ''
   inc_np = include_directories(incdir_numpy)
   numpy_found = true
   message('NumPy include directory found:', incdir_numpy)
-  
+
   # Also try to get NumPy version for information
   numpy_version = run_command(py,
     ['-c', 'import numpy; print(numpy.__version__)'],
     check: false
   ).stdout().strip()
-  
+
   if numpy_version != ''
     message('NumPy version:', numpy_version)
   endif
 else
   # Fall back to dependency system (may not work on Windows)
   np_dep = dependency('numpy', required: false)
-  
+
   if np_dep.found()
     inc_np = []  # Will be handled by np_dep
     numpy_found = true

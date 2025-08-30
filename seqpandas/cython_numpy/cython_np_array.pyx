@@ -16,8 +16,8 @@ cpdef to_array(list inp):
     cdef Py_ssize_t n = len(inp)
     cdef np.ndarray[np.int16_t, ndim=1] arr = np.zeros(n, dtype=np.int16)
     cdef Py_ssize_t idx
-    
+
     for idx in range(n):
         arr[idx] = inp[idx]
-    
+
     return arr
