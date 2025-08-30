@@ -70,8 +70,8 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           # Install system and Python dependencies before building
-          # Linux: Install system libraries needed for pysam compilation
-          CIBW_BEFORE_BUILD_LINUX: "dnf install -y bzip2-devel xz-devel libcurl-devel zlib-devel && pip install 'numpy>=1.21.0,<2.0.0' && pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja"
+          # Linux: Install system libraries needed for pysam compilation (manylinux_2_28 uses dnf)
+          CIBW_BEFORE_BUILD_LINUX: "(command -v dnf >/dev/null 2>&1 && dnf install -y bzip2-devel xz-devel libcurl-devel zlib-devel) || (command -v yum >/dev/null 2>&1 && yum install -y bzip2-devel xz-devel libcurl-devel zlib-devel) || (command -v apt-get >/dev/null 2>&1 && apt-get update && apt-get install -y libbz2-dev liblzma-dev libcurl4-openssl-dev zlib1g-dev) && pip install 'numpy>=1.21.0,<2.0.0' && pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja"
           # macOS: Install Python dependencies (homebrew libraries usually available)
           CIBW_BEFORE_BUILD_MACOS: "pip install 'numpy>=1.21.0,<2.0.0' && pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja"
           # Test the wheels (skip SAM tests on Windows since pysam doesn't support Windows)
