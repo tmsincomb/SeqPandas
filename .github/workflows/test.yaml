@@ -38,7 +38,8 @@ jobs:
           # Ensure NumPy is available for build
           python -c "import numpy; print(f'NumPy {numpy.__version__} found at {numpy.get_include()}')"
           python -m build --wheel
-          pip install dist/*.whl
+          # Windows PowerShell doesn't expand wildcards in pip, so we need to find the wheel file
+          python -c "import glob, subprocess; wheels = glob.glob('dist/*.whl'); subprocess.run(['pip', 'install'] + wheels, check=True) if wheels else print('No wheels found')"
 
       - name: Install test dependencies
         run: |
