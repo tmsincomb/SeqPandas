@@ -3,11 +3,9 @@
 """Tests for `seqpandas` package."""
 
 import pytest
-
 from click.testing import CliRunner
 
-from seqpandas import seqpandas
-from seqpandas import cli
+from seqpandas import cli, seqpandas
 
 
 @pytest.fixture

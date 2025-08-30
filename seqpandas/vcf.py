@@ -13,19 +13,21 @@ from .seqpandas import BioDataFrame
 
 __version__ = "0.0.2"  # Import directly to avoid circular import
 
+
 @dataclass
 class IO:
-    """ VCF I/O for VCF Version 4.3 found at src https://github.com/samtools/hts-specs/blob/master/VCFv4.3.pdf
-    
+    """VCF I/O for VCF Version 4.3 found at src https://github.com/samtools/hts-specs/blob/master/VCFv4.3.pdf
+
     META
         Specifics on how the VCF was generated.
     HEADER
         #CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO    FORMAT  Sample1 Sample2 Sample3
     BODY
-        Variant call row following format 
+        Variant call row following format
     """
+
     meta: str = None
-    
+
     # Required header; The next columns after info are FORMAT with each Sample{i} metadata trailing after
     default_header = OrderedDict(
         [
@@ -44,10 +46,15 @@ class IO:
             # SampleN
         ]
     )
-    
-    def get_vcf_meta(self, path: Path | str) -> list[str]:
+
+    def get_vcf_meta(
+        self, path: Path | str, ignore_header: bool = False, input_header: dict = None
+    ) -> list[str]:
         with open(path, "r") as infile:
             lines = []
+            header = self.default_header.copy()
+            column_name_type_mappings = None
+
             for line in infile:
                 # hopefully removes EOF errors
                 if not line:
@@ -59,21 +66,30 @@ class IO:
                 if line.startswith("#"):
                     if ignore_header is False:
                         # start at 1 to remove the # in #CHROM; end at -1 to remove newline \n
-                        column_names = line[1:-1].split("\t") 
+                        column_names = line[1:-1].split("\t")
                         column_name_type_mappings = OrderedDict(
                             [
-                                (column_name, header.get(column_name, str))  # default to column being dtype str if its an extra
+                                (
+                                    column_name,
+                                    header.get(column_name, str),
+                                )  # default to column being dtype str if its an extra
                                 for column_name in column_names
                             ]
                         )
                 else:
                     lines.append(line)
-            num_columns = len(lines[0].split("\t"))
-        
+
+            if lines:
+                num_columns = len(lines[0].split("\t"))
+            else:
+                return lines
+
         if input_header:
             num_header = len(input_header.keys())
             if num_header != num_columns:
-                exit(f"ERROR :: You have a mismatch -> number of columns={num_columns} number of headers={num_header}")
+                exit(
+                    f"ERROR :: You have a mismatch -> number of columns={num_columns} number of headers={num_header}"
+                )
             header = input_header
         else:
             # If default header isn't enough, add them as Sample{i}.
@@ -81,11 +97,16 @@ class IO:
             extra_columns = num_columns - num_header
             if extra_columns == 1:
                 exit("ERROR :: Column FORMAT was given with a training sample columns")
-            elif extra_columns > 0:  # FORMAT column will not form unless it has sample columns with work with.
+            elif (
+                extra_columns > 0
+            ):  # FORMAT column will not form unless it has sample columns with work with.
                 header.update({"FORMAT": str})  # shared FORMAT of each trailing sample
                 header.update(OrderedDict([(f"Sample{i}", str) for i in range(1, extra_columns)]))
             else:
                 pass  # No sample data to be used
+
+        return lines
+
 
 def read_vcf(
     path: str,
@@ -93,7 +114,7 @@ def read_vcf(
     samples_as_dict_dtype: bool = True,
 ) -> pd.DataFrame:
     """VCF reader for Version 4.2 using https://samtools.github.io/hts-specs/VCFv4.2.pdf
-    
+
     Parameters
     ----------
     path : str
@@ -101,8 +122,8 @@ def read_vcf(
     ignore_header : bool, default False
         Ignore header from VCF and use created one here. Defaults to False.
         VCF are hard enough to parse; headers are rarely done right so we need to allow a way to ignore them.
-        
-    
+
+
     Returns
     -------
         pd.DataFrame
@@ -140,10 +161,13 @@ def read_vcf(
             if line.startswith("#"):
                 if not ignore_header:
                     # start at 1 to remove the # in #CHROM; end at -1 to remove newline \n
-                    column_names = line[1:-1].split("\t") 
+                    column_names = line[1:-1].split("\t")
                     input_header = OrderedDict(
                         [
-                            (column_name, header.get(column_name, str))  # default to column being dtype str if its an extra
+                            (
+                                column_name,
+                                header.get(column_name, str),
+                            )  # default to column being dtype str if its an extra
                             for column_name in column_names
                         ]
                     )
@@ -153,7 +177,9 @@ def read_vcf(
     if input_header:
         num_header = len(input_header.keys())
         if num_header != num_columns:
-            exit(f"ERROR :: You have a mismatch -> number of columns={num_columns} number of headers={num_header}")
+            exit(
+                f"ERROR :: You have a mismatch -> number of columns={num_columns} number of headers={num_header}"
+            )
         header = input_header
     else:
         # If default header isn't enough, add them as Sample{i}.
@@ -161,7 +187,9 @@ def read_vcf(
         extra_columns = num_columns - num_header
         if extra_columns == 1:
             exit("ERROR :: Column FORMAT was given with a training sample columns")
-        elif extra_columns > 0:  # FORMAT column will not form unless it has sample columns with work with.
+        elif (
+            extra_columns > 0
+        ):  # FORMAT column will not form unless it has sample columns with work with.
             header.update({"FORMAT": str})  # shared FORMAT of each trailing sample
             header.update(OrderedDict([(f"Sample{i}", str) for i in range(1, extra_columns)]))
         else:
@@ -178,7 +206,9 @@ def read_vcf(
             df["FORMAT"] = "GT"
             df["Sample1"] = [
                 "0/1" if float(info.get("AF", "1")) < 1 else "1/1"
-                for info in df["INFO"].apply(lambda x: {v.split("=")[0]: v.split("=")[1] for v in x.split(";") if "=" in v})
+                for info in df["INFO"].apply(
+                    lambda x: {v.split("=")[0]: v.split("=")[1] for v in x.split(";") if "=" in v}
+                )
             ]
     except (KeyError, ValueError):
         pass  # attempt failed to create a useable genotype from allele frequency; it's possible that it's valid.
@@ -197,6 +227,7 @@ def read_vcf(
 
 def to_vcf(df, reference: str) -> str:
     from datetime import datetime
+
     header = f"""##fileformat=VCFv4.3
 ##fileDate={datetime.today().isoformat().split('T')[0].replace('-', '')}
 ##source=SeqPandasV{__version__}
@@ -204,13 +235,10 @@ def to_vcf(df, reference: str) -> str:
 """
     # TODO: Implement VCF writing logic
     return header
-    
-    
+
+
 class VCF(BioDataFrame):
-    
+
     @classmethod
     def from_vcf(cls, path, **kwargs):
         return cls(read_vcf(path, **kwargs))
-    
-    
-    

@@ -35,7 +35,7 @@ else
     ['-c', 'import numpy; print(numpy.get_include())'],
     check: false
   ).stdout().strip()
-  
+
   if incdir_numpy != ''
     inc_np = include_directories(incdir_numpy)
     numpy_found = true

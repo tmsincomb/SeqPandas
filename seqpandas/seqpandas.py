@@ -1,16 +1,17 @@
 """Main module."""
-from abc import ABC
+
 import bz2
-from copy import deepcopy  # copies all nested dictionaries
 import gzip
+from abc import ABC
+from copy import deepcopy  # copies all nested dictionaries
 from io import StringIO
 from pathlib import Path
 from types import GeneratorType
-from typing import Union, List, Tuple, Iterator
+from typing import Iterator, List, Tuple, Union
 
-from Bio.Seq import Seq
-from Bio import SeqIO  # __init__ kicks in
 import pandas as pd
+from Bio import SeqIO  # __init__ kicks in
+from Bio.Seq import Seq
 from pysam import AlignmentFile
 
 from .tools.pathing import pathing
@@ -87,8 +88,10 @@ class BioDataFrame(SubclassedDataFrame, ABC):
         seqrecords_list = list(seqrecords)
         if seqrecords_list and isinstance(seqrecords_list[0], dict):
             return seqrecords_list
-        
-        seqrecords = SeqIO.to_dict(seqrecords_list).values()  # Only care for the actual records themselves
+
+        seqrecords = SeqIO.to_dict(
+            seqrecords_list
+        ).values()  # Only care for the actual records themselves
 
         records = []
         for seqrecord in seqrecords:
@@ -211,7 +214,7 @@ def read(
         if not format:
             raise ValueError("Must specify format for StringIO")
         format = format.lower().strip()
-    
+
     # Special handling for SAM/BAM/CRAM files - they yield alignment dicts
     if format in ["sam", "bam", "cram"]:
         if format == "sam":
@@ -220,7 +223,7 @@ def read(
             samfile = AlignmentFile(str(path) if path else handle, "rb", threads=1)
         elif format == "cram":
             samfile = AlignmentFile(str(path) if path else handle, "rc", threads=1)
-        
+
         # Yield alignments as dict-like objects
         for alignment in samfile:
             yield alignment.to_dict()

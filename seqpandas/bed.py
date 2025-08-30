@@ -28,4 +28,6 @@ def read_bed(bedfile: str) -> pd.DataFrame:
                 break
             if row[0] not in ["browser", "track"] and i > 0:
                 break
-        return pd.read_csv(bedfile, delimiter="\t", header=None, names=header, skiprows=data_start).fillna("")
+        return pd.read_csv(
+            bedfile, delimiter="\t", header=None, names=header, skiprows=data_start
+        ).fillna("")

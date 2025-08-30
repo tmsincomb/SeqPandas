@@ -19,6 +19,6 @@ py.install_sources(
 subdir('tools')
 subdir('colors')
 
-# Build Cython extension 
+# Build Cython extension
 # Always try to build it - the module has its own error handling
 subdir('cython_numpy')

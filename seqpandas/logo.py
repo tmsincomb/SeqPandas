@@ -22,7 +22,9 @@ with open(CUSTOM_GLYPHS_PATH) as f:
     CUSTOM_GLYPHS = json.load(f)
 
 DEFAULT_THREADS = multiprocessing.cpu_count()
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -61,7 +63,9 @@ def plot_logo_with_indels(
     highlight_pos: list[int] = [],
     highlight_color: str = "gold",
     highlight_alpha: float = 0.5,
-    color_scheme: Literal["NajafabadiEtAl2017", "PGDM1400", "PGT121", "VRC01", "VRC07.523LS", "grays"] = "NajafabadiEtAl2017",
+    color_scheme: Literal[
+        "NajafabadiEtAl2017", "PGDM1400", "PGT121", "VRC01", "VRC07.523LS", "grays"
+    ] = "NajafabadiEtAl2017",
 ):
     """
     Create a sequence logo plot accounting for insertions (gaps '-') and deletions ('.').
@@ -82,16 +86,13 @@ def plot_logo_with_indels(
 
     # Use the new alignment functions to get frequency matrix and labels
     freq_df, ref_positions, variant_positions = sequences_to_logo_format(
-        alignment, 
-        reference_index=0, 
-        positions=positions
+        alignment, reference_index=0, positions=positions
     )
-    
+
     # Use variant positions as highlight positions if not specified
     if not highlight_pos:
         highlight_pos = variant_positions
 
-    
     # Handle custom color schemes
     special_char_colors = []
     if color_scheme in ["PGDM1400", "PGT121", "VRC01", "VRC07.523LS"]:
@@ -157,7 +158,9 @@ def plot_logo_with_indels(
     return freq_df
 
 
-def process_file(input_df_path: str, output_logo: str, positions: list[int], ref_pos: int, color_scheme: str) -> None:
+def process_file(
+    input_df_path: str, output_logo: str, positions: list[int], ref_pos: int, color_scheme: str
+) -> None:
     """Process a single DataFrame file and generate a logo."""
     logger.info(f"Processing file: {input_df_path}")
     aln_df = pd.read_csv(input_df_path, index_col=0)
@@ -166,7 +169,9 @@ def process_file(input_df_path: str, output_logo: str, positions: list[int], ref
     pileup = aln_df.apply(lambda x: "".join(x), axis=1).values
     # replace first index with ref_pos
     pileup = swap_elements(pileup, 0, ref_pos)
-    plot_logo_with_indels(alignment=pileup, output_file=output_logo, positions=positions, color_scheme=color_scheme)
+    plot_logo_with_indels(
+        alignment=pileup, output_file=output_logo, positions=positions, color_scheme=color_scheme
+    )
 
 
 def process_folder(
@@ -211,7 +216,9 @@ def main():
         default="*.csv",
         help="File pattern to match when processing folders (default: *.tsv)",
     )
-    parser.add_argument("--is-folder", action="store_true", help="Explicitly indicate input is a folder")
+    parser.add_argument(
+        "--is-folder", action="store_true", help="Explicitly indicate input is a folder"
+    )
     parser.add_argument(
         "--ref-pos",
         type=int,
@@ -232,7 +239,14 @@ def main():
 
     if is_folder:
         logger.info(f"Processing folder: {args.input}")
-        process_folder(args.input, args.output, args.positions, args.file_pattern, args.ref_pos, args.color_scheme)
+        process_folder(
+            args.input,
+            args.output,
+            args.positions,
+            args.file_pattern,
+            args.ref_pos,
+            args.color_scheme,
+        )
     else:
         logger.info(f"Processing file: {args.input}")
         process_file(args.input, args.output, args.positions, args.ref_pos)

@@ -26,7 +26,7 @@ else
       ['-c', 'import numpy; print(numpy.get_include())'],
       check: false
     ).stdout().strip()
-    
+
     if incdir_numpy_local != ''
       incs = include_directories(incdir_numpy_local)
       message('Found NumPy include via direct import:', incdir_numpy_local)

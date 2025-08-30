@@ -96,12 +96,8 @@ class Pileup:
         self.contig_start = None
         self.contig_end = None
         self.minimum_coverage = minimum_coverage
-        self.heterozygous_threshold = (
-            heterozygous_threshold  # minimum difference a secondary alt needs to be for a variant to be called.
-        )
-        self.minimum_variant_radius = (
-            minimum_variant_radius  # distance variants are allowed to be without being classified as complex
-        )
+        self.heterozygous_threshold = heterozygous_threshold  # minimum difference a secondary alt needs to be for a variant to be called.
+        self.minimum_variant_radius = minimum_variant_radius  # distance variants are allowed to be without being classified as complex
         self.mapping_coverages = []
         # alignment parameters
         self.minimum_alignment_coverage = minimum_alignment_coverage
@@ -143,7 +139,9 @@ class Pileup:
             top += bot
         elif top_len <= left:
             padding = left - top_len
-            return np.concatenate((np.pad(top, (0, padding), "constant", constant_values=(0, 0)), bot))
+            return np.concatenate(
+                (np.pad(top, (0, padding), "constant", constant_values=(0, 0)), bot)
+            )
         elif right > 0:
             top[left:] += bot[: top_len - left]
             top = np.concatenate((top, bot[-right:]))
@@ -152,18 +150,24 @@ class Pileup:
         return top
 
     def _get_contig_pileup_fragment(self, alignment):
-        align_pairs = alignment.get_aligned_pairs()[alignment.query_alignment_start : alignment.query_alignment_end]
+        align_pairs = alignment.get_aligned_pairs()[
+            alignment.query_alignment_start : alignment.query_alignment_end
+        ]
         contig_fragment = []
         for query_pos, ref_pos in align_pairs:
             if ref_pos is not None:
                 last_ref_pos = ref_pos  # removes odd alignment edge-cases
             if ref_pos is not None and query_pos is not None:
-                contig_fragment.extend(self.basepile[alignment.query_sequence[query_pos]][:] + [0, 0, 0, 0])
+                contig_fragment.extend(
+                    self.basepile[alignment.query_sequence[query_pos]][:] + [0, 0, 0, 0]
+                )
             elif (
                 ref_pos is None and query_pos is not None and contig_fragment
             ):  # Insertion: query base with no reference position
                 contig_fragment[self.baseindex[alignment.query_sequence[query_pos]]] += 1
-            elif ref_pos is not None and query_pos is None:  # Deletion: reference position with no query base
+            elif (
+                ref_pos is not None and query_pos is None
+            ):  # Deletion: reference position with no query base
                 contig_fragment.extend([0, 0, 0, 0, 0, 0, 0, 0])
         return contig_fragment, last_ref_pos
 
@@ -203,21 +207,31 @@ class Pileup:
             left *= pileup_len
             right *= pileup_len
             # padding arrays to be the same size
-            merged_contig_fragment = self._offset_sum(prev_contig_fragment, contig_fragment, left, right)
+            merged_contig_fragment = self._offset_sum(
+                prev_contig_fragment, contig_fragment, left, right
+            )
 
             # alignments are sorted so the current reference slice is next
-            prev_contig_fragment = merged_contig_fragment[(reference_start - prev_reference_start) * pileup_len :]
+            prev_contig_fragment = merged_contig_fragment[
+                (reference_start - prev_reference_start) * pileup_len :
+            ]
             # previous reference start to current reference start slice for vstack
-            fragment = merged_contig_fragment[: (reference_start - prev_reference_start) * pileup_len]
+            fragment = merged_contig_fragment[
+                : (reference_start - prev_reference_start) * pileup_len
+            ]
             # update positions
-            prev_reference_end = reference_end if reference_end >= prev_reference_end else prev_reference_end
+            prev_reference_end = (
+                reference_end if reference_end >= prev_reference_end else prev_reference_end
+            )
             prev_reference_start = reference_start
             try:
                 if fragment.size != 0:  # repeating alignments at same ref start position
                     yield fragment.reshape(-1, pileup_len)
             except ValueError as e:
                 print(f"Error reshaping fragment at alignment {i}: {e}")
-                print(f"Fragment shape: {fragment.shape}, merged shape: {merged_contig_fragment.shape}")
+                print(
+                    f"Fragment shape: {fragment.shape}, merged shape: {merged_contig_fragment.shape}"
+                )
                 raise RuntimeError(f"Failed to reshape pileup fragment at alignment {i}") from e
         self.contig_end = prev_reference_end + self.contig_start
         if prev_contig_fragment.size != 0:
@@ -310,7 +324,13 @@ if __name__ == "__main__":
 
     vcf = pathing("~/Dropbox/thesis/VariantNET/testing_data/chr21/chr21.vcf")
     fasta = pathing("~/Dropbox/thesis/VariantNET/testing_data/chr21/chr21.fa")
-    bam = pathing("~/Dropbox/thesis/VariantNET/testing_data/chr21/hg38.NA12878-WashU_chr21-14069662-46411975.bam")
-    bami = pathing("~/Dropbox/thesis/VariantNET/testing_data/chr21/hg38.NA12878-WashU_chr21-14069662-46411975.bam.bai")
-    bed = pathing("~/Dropbox/thesis/VariantNET/testing_data/chr21/CHROM21_v.3.3.2_highconf_noinconsistent.bed")
+    bam = pathing(
+        "~/Dropbox/thesis/VariantNET/testing_data/chr21/hg38.NA12878-WashU_chr21-14069662-46411975.bam"
+    )
+    bami = pathing(
+        "~/Dropbox/thesis/VariantNET/testing_data/chr21/hg38.NA12878-WashU_chr21-14069662-46411975.bam.bai"
+    )
+    bed = pathing(
+        "~/Dropbox/thesis/VariantNET/testing_data/chr21/CHROM21_v.3.3.2_highconf_noinconsistent.bed"
+    )
     # p = Pileup(fasta, bam)
