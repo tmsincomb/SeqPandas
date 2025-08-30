@@ -3,9 +3,17 @@ include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE
 include README.rst
+include pyproject.toml
 
 recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
+
+# Include Cython source files
+recursive-include seqpandas *.pyx *.pxd
+include seqpandas/cython_numpy/*.c
+
+# Include type hints if present
+include seqpandas/py.typed

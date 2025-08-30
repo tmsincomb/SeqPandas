@@ -1,0 +1,115 @@
+[build-system]
+requires = [
+    "meson-python>=0.15.0",
+    "Cython>=3.0.0",
+    "numpy>=1.21.0",
+]
+build-backend = "mesonpy"
+
+[project]
+name = "seqpandas"
+version = "0.0.2"
+description = "Read bioinformatics sequence formats into a Pandas DataFrame"
+readme = "README.rst"
+license = {text = "MIT"}
+authors = [
+    {name = "Troy Sincomb", email = "troysincomb@gmail.com"},
+]
+maintainers = [
+    {name = "Troy Sincomb", email = "troysincomb@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Cython",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "Click>=7.0",
+    "pandas>=1.3.0",
+    "biopython>=1.79",
+    "pysam>=0.19.0",
+    "numpy>=1.21.0,<1.27.0",
+    "scipy>=1.7.0",
+    "matplotlib>=3.3.0",
+    "logomaker>=0.8",
+    "patchworklib>=0.6.3",
+]
+keywords = ["bioinformatics", "genomics", "pandas", "vcf", "fasta", "sam", "bed", "pileup", "cython"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.2.4",
+    "flake8>=3.7.8",
+    "black>=21.7b0",
+    "coverage>=4.5.4",
+    "tox>=3.14.0",
+    "Sphinx>=1.8.5",
+    "twine>=1.14.0",
+    "bump2version>=0.5.11",
+    "watchdog>=0.9.0",
+    "build>=0.10.0",
+]
+test = [
+    "pytest>=6.2.4",
+    "pytest-cov>=2.12.0",
+]
+
+[project.scripts]
+seqpandas = "seqpandas.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/tmsincomb/seqpandas"
+Documentation = "https://seqpandas.readthedocs.io"
+Repository = "https://github.com/tmsincomb/seqpandas"
+Issues = "https://github.com/tmsincomb/seqpandas/issues"
+
+[tool.meson-python]
+# Meson-python specific options
+args = {compile = [], setup = ['-Dbuildtype=release']}
+
+[tool.cibuildwheel]
+# Build wheels for Python 3.8+
+build = "cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = "*-musllinux_*"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["seqpandas"]
+omit = ["*/tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]
