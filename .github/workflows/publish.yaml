@@ -67,9 +67,9 @@ jobs:
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
           CIBW_SKIP: "*-musllinux_*"
           # Install build dependencies before building
-          CIBW_BEFORE_BUILD: "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' 'numpy>=1.21.0,<2.0.0' meson ninja"
+          CIBW_BEFORE_BUILD: "pip install 'numpy>=1.21.0,<2.0.0' && pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja"
           # Windows specific build command
-          CIBW_BEFORE_BUILD_WINDOWS: "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' 'numpy>=1.21.0,<2.0.0' meson ninja && pip install delvewheel"
+          CIBW_BEFORE_BUILD_WINDOWS: "pip install 'numpy>=1.21.0,<2.0.0' && pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja delvewheel && python -c \"import numpy; print(f'NumPy {numpy.__version__} at {numpy.get_include()}')\""
           # Test the wheels
           CIBW_TEST_REQUIRES: "pytest pandas biopython pysam>=0.23.3 numpy<2.0.0 scipy matplotlib logomaker patchworklib"
           CIBW_TEST_COMMAND: "pytest {package}/tests -v"

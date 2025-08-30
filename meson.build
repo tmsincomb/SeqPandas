@@ -15,36 +15,43 @@ project(
 py = import('python').find_installation(pure: false)
 py_dep = py.dependency()
 
-# NumPy dependency handling - robust approach for all scenarios
-# 1. Try to find NumPy via dependency() first (most reliable)
-# 2. Fall back to runtime detection
-# 3. Allow build to continue even if NumPy not found (Cython module is optional)
+# NumPy dependency handling - robust approach for all platforms including Windows
+# Windows often has issues with pkg-config, so we prioritize Python-based detection
 
-# Method 1: Try to find NumPy via dependency system
-np_dep = dependency('numpy', required: false)
+# Always try to get NumPy include directory from Python first (most reliable on Windows)
+incdir_numpy = run_command(py,
+  ['-c', 'import numpy; print(numpy.get_include())'],
+  check: false
+).stdout().strip()
+
 numpy_found = false
-
-if np_dep.found()
-  # NumPy found via dependency system - most reliable
-  inc_np = []  # Will be handled by np_dep
+if incdir_numpy != ''
+  inc_np = include_directories(incdir_numpy)
   numpy_found = true
-  message('NumPy found via dependency system')
-else
-  # Method 2: Try to get NumPy include directory from Python
-  incdir_numpy = run_command(py,
-    ['-c', 'import numpy; print(numpy.get_include())'],
+  message('NumPy include directory found:', incdir_numpy)
+  
+  # Also try to get NumPy version for information
+  numpy_version = run_command(py,
+    ['-c', 'import numpy; print(numpy.__version__)'],
     check: false
   ).stdout().strip()
-
-  if incdir_numpy != ''
-    inc_np = include_directories(incdir_numpy)
+  
+  if numpy_version != ''
+    message('NumPy version:', numpy_version)
+  endif
+else
+  # Fall back to dependency system (may not work on Windows)
+  np_dep = dependency('numpy', required: false)
+  
+  if np_dep.found()
+    inc_np = []  # Will be handled by np_dep
     numpy_found = true
-    message('NumPy include directory found via Python:', incdir_numpy)
+    message('NumPy found via dependency system')
   else
-    # NumPy not available - Cython extension will be skipped or fail gracefully
+    # NumPy not available - build will fail
     inc_np = []
     numpy_found = false
-    warning('NumPy not found - Cython extension may not build')
+    error('NumPy not found - please install numpy before building')
   endif
 endif
 
