@@ -92,19 +92,8 @@ before-test = "cp -r {project}/tests {package}/ 2>/dev/null || true"
 test-command = "cd {package} && pytest tests -v"
 test-requires = ["pytest", "pandas", "biopython", "pysam>=0.23.3", "numpy<2.0.0", "scipy", "matplotlib", "logomaker", "patchworklib"]
 
-# Platform-specific build requirements
-[tool.cibuildwheel.linux]
-before-build = [
-    "dnf install -y bzip2-devel xz-devel libcurl-devel zlib-devel",
-    "pip install 'numpy>=1.21.0,<2.0.0'",
-    "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja"
-]
-
-[tool.cibuildwheel.macos]
-before-build = [
-    "pip install 'numpy>=1.21.0,<2.0.0'",
-    "pip install 'meson-python>=0.15.0' 'Cython>=3.0.0' meson ninja"
-]
+# Platform-specific build requirements are set in .github/workflows/publish.yaml
+# to avoid conflicts between different CI environments
 
 [tool.black]
 line-length = 100
