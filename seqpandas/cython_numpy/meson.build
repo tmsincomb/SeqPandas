@@ -9,31 +9,24 @@ build_cython = true
 deps = [py_dep]
 incs = []
 
-# Try to find NumPy - use multiple strategies
-if np_dep.found()
-  # NumPy found via dependency system from parent
-  deps += np_dep
-  message('NumPy found via dependency system for Cython module')
+# Try to get NumPy include directory from parent
+# Check if NumPy was found in parent meson.build
+if numpy_found and is_variable('inc_np')
+  incs = inc_np
+  message('Using NumPy include from parent meson.build')
 else
-  # Try to get NumPy include directory from parent
-  # Check if NumPy was found in parent meson.build
-  if numpy_found and is_variable('inc_np')
-    incs = inc_np
-    message('Using NumPy include from parent meson.build')
-  else
-    # Final attempt: try to import NumPy directly
-    incdir_numpy_local = run_command(py,
-      ['-c', 'import numpy; print(numpy.get_include())'],
-      check: false
-    ).stdout().strip()
+  # Try to import NumPy directly
+  incdir_numpy_local = run_command(py,
+    ['-c', 'import numpy; print(numpy.get_include())'],
+    check: false
+  ).stdout().strip()
 
-    if incdir_numpy_local != ''
-      incs = include_directories(incdir_numpy_local)
-      message('Found NumPy include via direct import:', incdir_numpy_local)
-    else
-      warning('NumPy headers not found - skipping Cython extension')
-      build_cython = false
-    endif
+  if incdir_numpy_local != ''
+    incs = include_directories(incdir_numpy_local)
+    message('Found NumPy include via direct import:', incdir_numpy_local)
+  else
+    warning('NumPy headers not found - skipping Cython extension')
+    build_cython = false
   endif
 endif
 
